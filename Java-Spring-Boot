@@ -1,0 +1,18 @@
+# Use an official OpenJDK runtime as a parent image
+FROM openjdk:17-jdk-slim
+
+# Set the working directory
+WORKDIR /app
+
+# Copy the jar file into the container
+COPY target/myapp.jar app.jar
+
+# Expose port (optional but good practice)
+EXPOSE 8080
+
+# Run the jar file
+ENTRYPOINT ["java", "-jar", "app.jar"]
+
+
+🔧 Build: docker build -t my-spring-app .
+🚀 Run: docker run -p 8080:8080 my-spring-app
