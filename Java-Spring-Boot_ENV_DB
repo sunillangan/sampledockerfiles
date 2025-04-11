@@ -1,0 +1,44 @@
+FROM openjdk:17-jdk-slim
+
+WORKDIR /app
+
+# Copy built jar file
+COPY target/myapp.jar app.jar
+
+# Define environment variables (can be overridden at runtime)
+ENV DB_HOST=localhost
+ENV DB_PORT=3306
+ENV DB_NAME=mydb
+ENV DB_USER=root
+ENV DB_PASSWORD=secret
+
+# Expose Spring Boot port
+EXPOSE 8080
+
+# Start the app with dynamic DB connection string
+ENTRYPOINT ["sh", "-c", \
+    "java -jar app.jar \
+    --spring.datasource.url=jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME} \
+    --spring.datasource.username=${DB_USER} \
+    --spring.datasource.password=${DB_PASSWORD}"]
+
+
+application.properties
+
+# Use env variables in Docker ENTRYPOINT
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=true
+
+
+# Build Docker image
+docker build -t spring-mysql-app .
+
+# Run with custom DB credentials
+docker run -p 8080:8080 \
+  -e DB_HOST=mysql-host \
+  -e DB_PORT=3306 \
+  -e DB_NAME=employees \
+  -e DB_USER=root \
+  -e DB_PASSWORD=mysecurepassword \
+  spring-mysql-app
