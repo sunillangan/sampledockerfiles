@@ -1,0 +1,20 @@
+# Use an official Python runtime as a parent image
+FROM python:3.11-slim
+
+# Set the working directory
+WORKDIR /app
+
+# Copy the current directory contents into the container
+COPY . .
+
+# Install any needed packages
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Expose port
+EXPOSE 5000
+
+# Define the default command to run the app
+CMD ["python", "app.py"]
+
+🔧 Build: docker build -t my-python-app .
+🚀 Run: docker run -p 5000:5000 my-python-app
