@@ -1,0 +1,86 @@
+FROM node:18
+
+# Set the working directory
+WORKDIR /app
+
+# Copy package files and install dependencies
+COPY package*.json ./
+RUN npm install
+
+# Copy the rest of the app
+COPY . .
+
+# Set environment variables (can be overridden during `docker run`)
+ENV DB_HOST=localhost
+ENV DB_PORT=3306
+ENV DB_NAME=mydb
+ENV DB_USER=root
+ENV DB_PASSWORD=secret
+
+# Expose app port
+EXPOSE 3000
+
+# Start the app
+CMD ["node", "index.js"]
+
+
+
+package.json
+{
+  "name": "node-mysql-app",
+  "version": "1.0.0",
+  "main": "index.js",
+  "dependencies": {
+    "express": "^4.18.2",
+    "mysql2": "^3.6.0"
+  }
+}
+
+
+index.js
+const express = require('express');
+const mysql = require('mysql2');
+
+const app = express();
+const port = 3000;
+
+// Read DB config from environment variables
+const db = mysql.createConnection({
+  host: process.env.DB_HOST,
+  port: process.env.DB_PORT,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+});
+
+db.connect(err => {
+  if (err) {
+    console.error('❌ DB connection failed:', err.message);
+  } else {
+    console.log('✅ Connected to MySQL!');
+  }
+});
+
+app.get('/', (req, res) => {
+  db.query('SELECT NOW() AS time', (err, results) => {
+    if (err) return res.status(500).send('DB error');
+    res.send(`MySQL Time: ${results[0].time}`);
+  });
+});
+
+app.listen(port, () => {
+  console.log(`🚀 Server running at http://localhost:${port}`);
+});
+
+
+
+
+docker build -t node-mysql-app .
+
+docker run -p 3000:3000 \
+  -e DB_HOST=your-mysql-host \
+  -e DB_PORT=3306 \
+  -e DB_NAME=your-db-name \
+  -e DB_USER=your-username \
+  -e DB_PASSWORD=your-password \
+  node-mysql-app
